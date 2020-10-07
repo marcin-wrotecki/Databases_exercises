@@ -38,9 +38,12 @@ COMMENT ON TABLE firma.pensja_stanowisko IS 'To jest tabela zwierająca informac
 COMMENT ON TABLE firma.premia IS 'To jest tabela zwierająca informacje o premiach';
 COMMENT ON TABLE firma.wynagrodzenie IS 'To jest tabela zwierająca informacje o wynagrodzeniach';
 --4F--	
-
-
---5--
+ALTER TABLE firma.godziny  DROP CONSTRAINT pracownik;
+ALTER TABLE firma.wynagrodzenie  DROP CONSTRAINT pracownik ;
+ ALTER TABLE firma.wynagrodzenie DROP CONSTRAINT godziny ;
+ ALTER TABLE firma.wynagrodzenie DROP CONSTRAINT pensja ;
+ ALTER TABLE firma.wynagrodzenie DROP CONSTRAINT premia;
+--5--                                                             
 INSERT INTO firma.pracownicy VALUES (1,'Marcin', 'Wrotecki', 'Chocz', '111 222 333'),
 (2,'Jan','Nowak','Warszawa','111 111 111'), (3,'Jagoda', 'Baran', 'Kraków', '222 222 222'), (4,'Jowita', 'Spych','Łódź','333 333 333'),(5,'Maciej', 'Łapacz', 'Kalisz','444 444 444'), (6,'Zdzisław', 'Andrych','Kraków','555 555 555'), (7,'Paweł', 'Lewy','Gdańsk','666 666 666'), (8,'Andrzej', 'Kosta', 'Miedzyzdroje','777 777 777'), (9,'Magda', 'Drobna', 'Częstochowa', '888 888 888'), (10,'Klaudia', 'Śpiewak', 'Berlin', '999 999 999');
 INSERT INTO firma.godziny VALUES (1,'2020-02-10',180,1), (2,'2020-02-10',165,2), (3,'2020-02-10',160,3), (4,'2020-02-10',160,4), (5,'2020-02-10',160,5), (6,'2020-02-10',160,6), (7,'2020-02-10',160,7), (8,'2020-02-10',160,8), (9,'2020-02-10',162,9), (10,'2020-02-10',164,10) ;
@@ -104,16 +107,40 @@ SELECT SUM(liczba_godzin*kwota),stanowisko FROM firma.pracownicy AS pr JOIN firm
 --g--
 SELECT COUNT(id_premii) FROM firma.pracownicy AS pr JOIN firma.wynagrodzenie AS w ON w.id_pracownika=pr.id_pracownika  JOIN firma.pensja_stanowisko AS ps ON w.id_pensji=ps.id_pensji JOIN firma.godziny AS g ON g.id_pracownika=w.id_pracownika GROUP BY stanowisko;
 --h--
+DELETE FROM firma.pracownicy WHERE id_pracownika NOT IN ( SELECT pr.id_pracownika FROM firma.pracownicy AS pr JOIN firma.wynagrodzenie AS w ON w.id_pracownika=pr.id_pracownika  
+JOIN firma.pensja_stanowisko AS ps ON w.id_pensji=ps.id_pensji 
+JOIN firma.godziny AS g ON g.id_pracownika=w.id_pracownika 
+FULL JOIN firma.premia ON premia.id_premii=w.id_premii 
+WHERE liczba_godzin*ps.kwota > 2700 AND w.id_premii is null AND pr.id_pracownika is not null ); 
 
+
+DELETE FROM firma.godziny WHERE id_pracownika NOT IN ( SELECT id_pracownika FROM firma.pracownicy );
+
+DELETE FROM firma.wynagrodzenie WHERE id_pracownika NOT IN ( SELECT id_pracownika FROM firma.pracownicy );
+
+DELETE FROM firma.pensja_stanowisko WHERE id_pensji NOT IN ( SELECT id_pensji FROM firma.wynagrodzenie );
+
+DELETE FROM firma.premia WHERE id_premii NOT IN ( SELECT id_premii FROM firma.wynagrodzenie );
 
 --8--
 --a--
 SELECT '(+48)'||telefon FROM firma.pracownicy;
 --b--
+SELECT id_pracownika,nazwisko,SUBSTRING(telefon,0,4)||'-'||SUBSTRING(telefon,4,4)||'-'||SUBSTRING(telefon,5,4) FROM firma.pracownicy;
 --c--
 SELECT UPPER(imie), UPPER(nazwisko) FROM firma.pracownicy WHERE (LENGTH(pracownicy.nazwisko))=(SELECT MAX(LENGTH(pracownicy.nazwisko)) FROM firma.pracownicy);
 --d--
 SELECT MD5(imie||nazwisko||adres||telefon||liczba_godzin*ps.kwota) FROM firma.pracownicy AS pr JOIN firma.wynagrodzenie AS w ON w.id_pracownika=pr.id_pracownika  
+JOIN firma.pensja_stanowisko AS ps ON w.id_pensji=ps.id_pensji 
+JOIN firma.godziny AS g ON g.id_pracownika=w.id_pracownika 
+FULL JOIN firma.premia ON premia.id_premii=w.id_premii WHERE pr.id_pracownika is not null;
+
+--9--
+SELECT 'Pracownik ' || imie || ' ' || nazwisko || ', w dniu '|| EXTRACT(DAY from g.data)||'.'
+||EXTRACT(MONTH FROM g.data)||'.'||EXTRACT(YEAR FROM g.data)||' otrzymał pensję całkowitą na kwotę ' 
+||g.liczba_godzin*ps.kwota+firma.premia.kwota|| ' zł, gdzie wynagrodzenie zasadnicze wynosiło: '||160*ps.kwota ||' zł, premia: '
+||firma.premia.kwota||' zł, nadgodziny: '||(liczba_godzin-160)*ps.kwota||' zł. '	
+FROM firma.pracownicy AS pr JOIN firma.wynagrodzenie AS w ON w.id_pracownika=pr.id_pracownika  
 JOIN firma.pensja_stanowisko AS ps ON w.id_pensji=ps.id_pensji 
 JOIN firma.godziny AS g ON g.id_pracownika=w.id_pracownika 
 FULL JOIN firma.premia ON premia.id_premii=w.id_premii WHERE pr.id_pracownika is not null;
