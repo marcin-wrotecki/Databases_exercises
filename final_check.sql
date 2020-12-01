@@ -1,0 +1,15 @@
+SELECT  (SELECT COUNT(*) FROM schema_name.clip ) AS cnt_clip,
+        (SELECT COUNT(*) FROM schema_name.dumppolygons ) AS cnt_dumppolygons,
+        (SELECT COUNT(*) FROM schema_name.intersection ) AS cnt_intersection,
+        (SELECT COUNT(*) FROM schema_name.intersects ) AS cnt_intersects,
+        (SELECT COUNT(*) FROM schema_name.landsat_nir ) AS cnt_landsat_nir,
+        (SELECT COUNT(*) FROM schema_name.paranhos_dem ) AS cnt_paranhos_dem,
+        (SELECT COUNT(*) FROM schema_name.paranhos_slope ) AS cnt_paranhos_slope,
+        (SELECT COUNT(*) FROM schema_name.paranhos_slope_reclass ) AS cnt_paranhos_slope_reclass,
+        (SELECT COUNT(*) FROM schema_name.porto_ndvi ) AS cnt_porto_ndvi,
+        (SELECT COUNT(*) FROM schema_name.porto_ndvi2 ) AS cnt_porto_ndvi2,
+        (SELECT COUNT(*) FROM schema_name.porto_parishes ) AS cnt_porto_parishes,
+        (SELECT COUNT(*) FROM schema_name.tpi30 ) AS cnt_tpi30,
+        (SELECT COUNT(*) FROM schema_name.tpi30_porto ) AS cnt_tpi30_porto,
+        (SELECT COUNT(*) FROM schema_name.union ) AS cnt_union;
+		
